@@ -124,6 +124,25 @@ export const TrackingSearch: React.FC<TrackingSearchProps> = ({
             <span className="hidden sm:inline text-amber-400 font-mono font-semibold">24x7 Live Hub Sync</span>
           </div>
 
+          {/* Sample AWBs quick tap for Mobile & Desktop */}
+          <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-amber-400 font-extrabold text-[11px]">Sample AWBs:</span>
+            <button
+              type="button"
+              onClick={() => { setSearchQuery('AMZ-IN-483028585'); onSearch('AMZ-IN-483028585'); }}
+              className="bg-slate-800/90 hover:bg-slate-700 text-amber-300 px-2.5 py-1 rounded-md font-mono font-bold text-[11px] border border-slate-700 shadow-sm transition active:scale-95 cursor-pointer"
+            >
+              AMZ-IN-483028585
+            </button>
+            <button
+              type="button"
+              onClick={() => { setSearchQuery('AMZ-IN-992014820'); onSearch('AMZ-IN-992014820'); }}
+              className="bg-slate-800/90 hover:bg-slate-700 text-amber-300 px-2.5 py-1 rounded-md font-mono font-bold text-[11px] border border-slate-700 shadow-sm transition active:scale-95 cursor-pointer"
+            >
+              AMZ-IN-992014820
+            </button>
+          </div>
+
         </div>
 
         {/* Error message when AWB is invalid / not found */}

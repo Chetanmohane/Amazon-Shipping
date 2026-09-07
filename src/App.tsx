@@ -105,23 +105,37 @@ export function App() {
     handleLoginSuccess(adminUser);
   };
 
-  // Search logic: Match AWB Number or Order ID in database
+  // Search logic: Match AWB Number or Order ID in database with string normalization
   const executeStrictSearch = (query: string, currentShipments: Shipment[] = shipments) => {
-    const trimmed = query.trim().toUpperCase();
-    setSearchedAwb(trimmed);
+    const raw = query.trim();
+    setSearchedAwb(raw);
 
-    if (!trimmed) {
+    if (!raw) {
       setSelectedShipment(null);
       setNotFound(false);
       return;
     }
 
-    const found = currentShipments.find(
-      s => s.awbNumber.toUpperCase() === trimmed || 
-           s.orderId.toUpperCase() === trimmed ||
-           (trimmed.length >= 4 && s.awbNumber.toUpperCase().includes(trimmed)) ||
-           (trimmed.length >= 4 && s.orderId.toUpperCase().includes(trimmed))
-    );
+    const uppercaseQuery = raw.toUpperCase();
+    const cleanAlphanumeric = raw.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+
+    const found = currentShipments.find(s => {
+      const awbUpper = s.awbNumber.toUpperCase();
+      const orderUpper = s.orderId.toUpperCase();
+      const awbAlpha = s.awbNumber.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      const orderAlpha = s.orderId.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+
+      return (
+        awbUpper === uppercaseQuery ||
+        orderUpper === uppercaseQuery ||
+        (cleanAlphanumeric.length >= 3 && awbAlpha === cleanAlphanumeric) ||
+        (cleanAlphanumeric.length >= 3 && orderAlpha === cleanAlphanumeric) ||
+        (cleanAlphanumeric.length >= 3 && awbAlpha.includes(cleanAlphanumeric)) ||
+        (cleanAlphanumeric.length >= 3 && orderAlpha.includes(cleanAlphanumeric)) ||
+        (uppercaseQuery.length >= 3 && awbUpper.includes(uppercaseQuery)) ||
+        (uppercaseQuery.length >= 3 && orderUpper.includes(uppercaseQuery))
+      );
+    });
 
     if (found) {
       setSelectedShipment(found);

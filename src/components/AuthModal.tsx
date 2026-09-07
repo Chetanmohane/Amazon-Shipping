@@ -22,13 +22,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   if (!isOpen) return null;
 
+  const handleQuickFill = () => {
+    setEmail(ADMIN_EMAIL);
+    setPassword(ADMIN_PASSWORD);
+    const adminUser: AuthUser = {
+      id: 'usr-admin-chetan',
+      email: ADMIN_EMAIL,
+      name: 'Admin Chetan Mohane',
+      role: 'admin',
+      createdAt: new Date().toISOString()
+    };
+    onLoginSuccess(adminUser);
+    onClose();
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    const inputEmail = email.trim();
+    const inputEmail = email.trim().toLowerCase();
+    const inputPass = password.trim();
 
-    if (inputEmail === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+    if (inputEmail === ADMIN_EMAIL.toLowerCase() && inputPass === ADMIN_PASSWORD) {
       const adminUser: AuthUser = {
         id: 'usr-admin-chetan',
         email: ADMIN_EMAIL,
@@ -45,7 +60,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-md overflow-hidden relative">
+      <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-md overflow-hidden relative max-h-[90vh] overflow-y-auto">
         
         {/* Header Ribbon */}
         <div className="bg-gradient-to-r from-[#131921] to-[#232F3E] text-white p-6 relative">
@@ -72,6 +87,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* Form Body */}
         <div className="p-6 space-y-5">
 
+          {/* Quick Demo 1-Click Fill Button for Mobile */}
+          <div className="bg-amber-50 border border-amber-300 p-3 rounded-xl flex items-center justify-between gap-2 text-xs">
+            <div>
+              <p className="font-extrabold text-slate-900">Admin Account</p>
+              <p className="text-[11px] text-amber-800 font-mono">chetanmohane27@gmail.com</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleQuickFill}
+              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3.5 py-2 rounded-lg text-xs shadow transition transform active:scale-95 whitespace-nowrap"
+            >
+              ⚡ 1-Click Login
+            </button>
+          </div>
+
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-xs p-3 rounded-lg leading-relaxed font-semibold">
               {error}
@@ -87,8 +117,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter admin email..."
+                  placeholder="e.g. chetanmohane27@gmail.com"
                   required
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
                   className="w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 font-medium outline-none"
                 />
               </div>
@@ -104,6 +137,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter password..."
                   required
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
                   className="w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 font-medium outline-none"
                 />
               </div>
@@ -111,7 +147,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
             <button
               type="submit"
-              className="w-full bg-[#FF9900] hover:bg-[#e68a00] text-slate-950 font-extrabold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition transform active:scale-98"
+              className="w-full bg-[#FF9900] hover:bg-[#e68a00] text-slate-950 font-extrabold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition transform active:scale-98 text-sm"
             >
               <span>Sign In to Admin Panel</span>
               <ArrowRight className="w-4 h-4" />
