@@ -45,8 +45,16 @@ export function App() {
 
   // Auth User state (Persisted in localStorage)
   const [authUser, setAuthUser] = useState<AuthUser | null>(() => {
-    const saved = localStorage.getItem('amazon_portal_auth_user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('amazon_portal_auth_user');
+      if (saved && saved !== 'undefined' && saved !== 'null') {
+        const u = JSON.parse(saved);
+        if (u && typeof u === 'object') return u;
+      }
+    } catch (e) {
+      console.warn('Error parsing saved auth user:', e);
+    }
+    return null;
   });
 
   // Supabase connection state indicator

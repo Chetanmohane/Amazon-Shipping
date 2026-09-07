@@ -25,9 +25,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private handleReset = () => {
     try {
-      localStorage.clear();
+      localStorage.removeItem('amazon_portal_auth_user');
+      localStorage.removeItem('amazon_tracking_shipments_v2');
+      localStorage.removeItem('amazon_supabase_url');
+      localStorage.removeItem('amazon_supabase_anon_key');
+      sessionStorage.clear();
     } catch (e) {}
-    window.location.reload();
+    window.location.href = window.location.origin;
   };
 
   public render() {
