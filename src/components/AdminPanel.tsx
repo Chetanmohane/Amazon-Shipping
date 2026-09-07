@@ -136,12 +136,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   }
 
   // Filtered shipments
-  const filteredShipments = shipments.filter(s => {
+  const filteredShipments = (shipments || []).filter(s => {
+    if (!s) return false;
+    const awb = (s.awbNumber || '').toLowerCase();
+    const order = (s.orderId || '').toLowerCase();
+    const custName = (s.customer?.name || '').toLowerCase();
+    const custCity = (s.customer?.city || s.customer?.state || '').toLowerCase();
+    const query = filterText.toLowerCase();
+
     const matchesQuery = 
-      s.awbNumber.toLowerCase().includes(filterText.toLowerCase()) ||
-      s.orderId.toLowerCase().includes(filterText.toLowerCase()) ||
-      s.customer.name.toLowerCase().includes(filterText.toLowerCase()) ||
-      s.customer.city.toLowerCase().includes(filterText.toLowerCase());
+      awb.includes(query) ||
+      order.includes(query) ||
+      custName.includes(query) ||
+      custCity.includes(query);
 
     const matchesStatus = statusFilter === 'ALL' || s.status === statusFilter;
 
@@ -346,15 +353,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   {/* Customer Info Card */}
                   <div className="bg-slate-50 p-2.5 rounded-xl border border-gray-200 text-xs space-y-1">
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-gray-900">👤 {s.customer.name}</span>
-                      <span className="font-mono text-[11px] text-gray-500">{s.customer.phone}</span>
+                      <span className="font-bold text-gray-900">👤 {s.customer?.name || 'Customer'}</span>
+                      <span className="font-mono text-[11px] text-gray-500">{s.customer?.phone || ''}</span>
                     </div>
                     <p className="text-[11px] text-gray-600">
-                      📍 {s.customer.city}, {s.customer.state}
+                      📍 {s.customer?.city || ''}{s.customer?.state ? `, ${s.customer.state}` : ''}
                     </p>
                     <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-gray-200 font-medium text-gray-700">
                       <span>Hub: <strong className="text-amber-700">{currentLoc}</strong></span>
-                      <span className="font-extrabold text-slate-900">₹{s.totalAmount.toLocaleString()} ({s.paymentType})</span>
+                      <span className="font-extrabold text-slate-900">₹{(s.totalAmount || 0).toLocaleString()} ({s.paymentType || 'Prepaid'})</span>
                     </div>
                   </div>
 
@@ -466,9 +473,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
                       {/* Customer */}
                       <td className="py-4 px-4">
-                        <p className="font-bold text-gray-900">{s.customer.name}</p>
-                        <p className="text-gray-500">{s.customer.city}, {s.customer.state}</p>
-                        <p className="text-[10px] text-gray-400 font-mono">{s.customer.phone}</p>
+                        <p className="font-bold text-gray-900">{s.customer?.name || 'Customer'}</p>
+                        <p className="text-gray-500">{s.customer?.city || ''}{s.customer?.state ? `, ${s.customer.state}` : ''}</p>
+                        <p className="text-[10px] text-gray-400 font-mono">{s.customer?.phone || ''}</p>
                       </td>
 
                       {/* Status & Location */}
@@ -505,7 +512,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
                       {/* Payment */}
                       <td className="py-4 px-4">
-                        <p className="font-bold text-gray-900">₹{s.totalAmount.toLocaleString()}</p>
+                        <p className="font-bold text-gray-900">₹{(s.totalAmount || 0).toLocaleString()}</p>
                         <span className="text-[10px] uppercase font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
                           {s.paymentType}
                         </span>
