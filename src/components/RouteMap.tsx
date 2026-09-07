@@ -19,10 +19,11 @@ export const RouteMap: React.FC<RouteMapProps> = ({ shipment }) => {
   };
 
   const progressPct = getStepProgress(shipment.status);
-  const originCity = shipment.shipper.city || 'Warehouse FC';
-  const destCity = shipment.customer.city || 'Destination';
-  const lastCheckpoint = shipment.checkpoints[shipment.checkpoints.length - 1];
-  const currentLocationName = lastCheckpoint?.location || shipment.customer.city;
+  const originCity = shipment.shipper?.city || 'Warehouse FC';
+  const destCity = shipment.customer?.city || 'Destination';
+  const checkpoints = shipment.checkpoints || [];
+  const lastCheckpoint = checkpoints[checkpoints.length - 1];
+  const currentLocationName = lastCheckpoint?.location || shipment.customer?.city || 'Hub Station';
 
   return (
     <div className="bg-gradient-to-br from-slate-900 via-[#1a2332] to-slate-950 text-white rounded-xl p-5 sm:p-6 shadow-xl border border-slate-800 relative overflow-hidden">

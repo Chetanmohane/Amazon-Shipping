@@ -310,8 +310,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           ) : (
             filteredShipments.map(s => {
-              const lastCp = s.checkpoints[s.checkpoints.length - 1];
-              const currentLoc = lastCp?.location || s.shipper.city;
+              const checkpoints = s.checkpoints || [];
+              const lastCp = checkpoints[checkpoints.length - 1];
+              const currentLoc = lastCp?.location || s.shipper?.city || 'Warehouse FC';
 
               return (
                 <div key={s.awbNumber} className="p-4 space-y-3 bg-white hover:bg-slate-50 transition">
@@ -442,8 +443,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </tr>
               ) : (
                 filteredShipments.map(s => {
-                  const lastCp = s.checkpoints[s.checkpoints.length - 1];
-                  const currentLoc = lastCp?.location || s.shipper.city;
+                  const checkpoints = s.checkpoints || [];
+                  const lastCp = checkpoints[checkpoints.length - 1];
+                  const currentLoc = lastCp?.location || s.shipper?.city || 'Warehouse FC';
 
                   return (
                     <tr key={s.awbNumber} className="hover:bg-slate-50 transition">

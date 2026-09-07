@@ -295,7 +295,7 @@ export const TrackingDetails: React.FC<TrackingDetailsProps> = ({
           </h3>
 
           <div className="mt-6 space-y-6 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-gray-200">
-            {shipment.checkpoints.map((cp, idx) => (
+            {(shipment.checkpoints || []).map((cp, idx) => (
               <div key={cp.id} className="relative flex items-start gap-4 pl-8 group">
                 
                 <div className={`absolute left-0 top-0.5 w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs transition ${
