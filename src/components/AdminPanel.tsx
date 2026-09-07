@@ -18,9 +18,15 @@ import {
   ArrowRight,
   Sliders,
   X,
-  Printer
+  Printer,
+  Share2,
+  Copy,
+  Check,
+  Upload,
+  Download
 } from 'lucide-react';
 import { Shipment, StatusType, AuthUser } from '../types/shipping';
+import { saveShipmentsToStorage } from '../data/mockData';
 
 interface AdminPanelProps {
   shipments: Shipment[];
@@ -60,6 +66,42 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [isHoldChecked, setIsHoldChecked] = useState<boolean>(false);
   const [customDesc, setCustomDesc] = useState('');
   const [customLocation, setCustomLocation] = useState('');
+
+  // Device Sync Modal State
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [syncCodeInput, setSyncCodeInput] = useState('');
+  const [syncCopied, setSyncCopied] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const handleCopySyncCode = () => {
+    try {
+      const code = btoa(encodeURIComponent(JSON.stringify(shipments)));
+      navigator.clipboard.writeText(code);
+      setSyncCopied(true);
+      setTimeout(() => setSyncCopied(false), 3000);
+    } catch (e) {
+      console.error('Failed to encode sync code:', e);
+    }
+  };
+
+  const handleImportSyncCode = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSyncMsg(null);
+    try {
+      const decoded = decodeURIComponent(atob(syncCodeInput.trim()));
+      const parsed = JSON.parse(decoded);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        saveShipmentsToStorage(parsed);
+        if (onRefreshData) onRefreshData();
+        setSyncMsg({ type: 'success', text: `Successfully synced ${parsed.length} live orders onto this device!` });
+        setSyncCodeInput('');
+      } else {
+        setSyncMsg({ type: 'error', text: 'Invalid sync code format.' });
+      }
+    } catch (e) {
+      setSyncMsg({ type: 'error', text: 'Invalid sync code string. Please copy fresh code from source device.' });
+    }
+  };
 
   // 1. Check Admin Auth Guard
   const isAdmin = authUser && authUser.role === 'admin';
@@ -163,6 +205,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
         <div className="flex flex-wrap items-center gap-3">
           <button
+            onClick={() => setIsSyncModalOpen(true)}
+            className="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs px-3.5 py-2.5 rounded-xl shadow-lg border border-indigo-400/40 flex items-center gap-1.5 transition transform active:scale-95 cursor-pointer"
+            title="Sync live orders between Laptop and Mobile using 1-Click Code"
+          >
+            <Share2 className="w-4 h-4 text-indigo-200" />
+            <span>📲 Sync Laptop & Mobile</span>
+          </button>
+
+          <button
             onClick={() => {
               if (onRefreshData) onRefreshData();
             }}
@@ -193,6 +244,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <span>Generate New Order / AWB</span>
           </button>
         </div>
+      </div>
+
+      {/* Sync Explanation Banner */}
+      <div className="bg-amber-500/10 border-2 border-amber-500/30 rounded-xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-800">
+        <div className="flex items-center gap-2.5">
+          <span className="text-amber-600 bg-amber-100 p-1.5 rounded-lg flex-shrink-0">💡</span>
+          <div>
+            <span className="font-extrabold text-gray-900">Laptop & Mobile Sync Tip:</span>
+            <span className="text-gray-600 ml-1">
+              Laptop aur Mobile dono screens par 100% same live data dekhne ke liye <strong>"📲 Sync Laptop & Mobile"</strong> button use karein ya <strong>Supabase Cloud DB</strong> setup karein.
+            </span>
+          </div>
+        </div>
+        <button
+          onClick={() => setIsSyncModalOpen(true)}
+          className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] px-3 py-1.5 rounded-lg shadow-sm whitespace-nowrap"
+        >
+          1-Click Sync Code ➔
+        </button>
       </div>
 
       {/* Orders List Table Card */}
@@ -595,6 +665,109 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Device Sync Modal */}
+      {isSyncModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-lg overflow-hidden relative max-h-[90vh] overflow-y-auto">
+            
+            {/* Header */}
+            <div className="bg-gradient-to-r from-indigo-950 via-[#131921] to-slate-900 text-white p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="p-2 bg-indigo-600 rounded-xl text-white">
+                  <Share2 className="w-5 h-5" />
+                </span>
+                <div>
+                  <h3 className="font-black text-base text-white">Laptop & Mobile Device Sync</h3>
+                  <p className="text-xs text-indigo-300">Sync live orders between multiple browsers with 1-Click Code</p>
+                </div>
+              </div>
+              <button
+                onClick={() => { setIsSyncModalOpen(false); setSyncMsg(null); }}
+                className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-white/10 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-5 space-y-5 text-xs">
+              
+              {syncMsg && (
+                <div className={`p-3 rounded-xl border text-xs font-bold ${
+                  syncMsg.type === 'success' ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-red-50 border-red-300 text-red-800'
+                }`}>
+                  {syncMsg.text}
+                </div>
+              )}
+
+              {/* Step 1: Export / Copy from Laptop */}
+              <div className="bg-indigo-50/70 border border-indigo-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-indigo-950 text-sm flex items-center gap-1.5">
+                    <Download className="w-4 h-4 text-indigo-600" />
+                    Step 1: Export Data (Copy from Source Device)
+                  </span>
+                  <span className="bg-indigo-200 text-indigo-900 px-2 py-0.5 rounded text-[10px] font-bold">
+                    {shipments.length} Orders Ready
+                  </span>
+                </div>
+                <p className="text-gray-600 text-[11px]">
+                  Jis device par orders pehle se bane hue hain, wahan ye code copy karke Mobile par send/paste karein:
+                </p>
+                <button
+                  onClick={handleCopySyncCode}
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow transition transform active:scale-98"
+                >
+                  {syncCopied ? (
+                    <>
+                      <Check className="w-4 h-4 text-emerald-300" />
+                      <span>Copied Sync Code to Clipboard!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      <span>Copy 1-Click Sync Code</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Step 2: Import / Paste on Mobile */}
+              <form onSubmit={handleImportSyncCode} className="bg-slate-50 border border-gray-200 rounded-xl p-4 space-y-3">
+                <span className="font-extrabold text-gray-900 text-sm flex items-center gap-1.5">
+                  <Upload className="w-4 h-4 text-amber-600" />
+                  Step 2: Import Data (Paste on Target Device)
+                </span>
+                <p className="text-gray-600 text-[11px]">
+                  Dusre device se copy kiya hua Sync Code yahan paste karein aur "Import Orders" par click karein:
+                </p>
+                <textarea
+                  value={syncCodeInput}
+                  onChange={(e) => setSyncCodeInput(e.target.value)}
+                  rows={3}
+                  placeholder="Paste Sync Code string here..."
+                  className="w-full p-2.5 border border-gray-300 rounded-xl text-[11px] font-mono focus:ring-2 focus:ring-amber-500 outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={!syncCodeInput.trim()}
+                  className="w-full bg-[#FF9900] hover:bg-[#e68a00] disabled:bg-gray-300 disabled:cursor-not-allowed text-slate-950 font-black py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow transition transform active:scale-98"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span>Import & Sync Orders to Device</span>
+                </button>
+              </form>
+
+              <div className="text-[11px] text-gray-500 bg-amber-50 border border-amber-200 p-3 rounded-xl">
+                💡 <strong>Permanent Real-Time Sync across all devices</strong> ke liye Admin header me <strong>"Setup Supabase Cloud DB"</strong> par click karke Supabase table script run karein!
+              </div>
+
+            </div>
+
           </div>
         </div>
       )}
