@@ -88,7 +88,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="e.g. chetanmohane27@gmail.com"
+                  placeholder="Enter your email address"
                   required
                   autoCapitalize="none"
                   autoCorrect="off"
