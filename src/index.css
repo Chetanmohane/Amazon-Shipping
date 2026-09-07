@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #EAEDED;
+    color: #0F1111;
+  }
+}
+
+/* Custom Print Styles for Shipping Labels */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-label, #printable-label * {
+    visibility: visible;
+  }
+  #printable-label {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: white;
+    box-shadow: none;
+    border: none;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
+.barcode-font {
+  font-family: 'Libre Barcode 39 Text', monospace;
+  font-size: 42px;
+}
+
+.mono-font {
+  font-family: 'Courier Prime', monospace;
+}
