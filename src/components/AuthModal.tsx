@@ -22,20 +22,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleQuickFill = () => {
-    setEmail(ADMIN_EMAIL);
-    setPassword(ADMIN_PASSWORD);
-    const adminUser: AuthUser = {
-      id: 'usr-admin-chetan',
-      email: ADMIN_EMAIL,
-      name: 'Admin Chetan Mohane',
-      role: 'admin',
-      createdAt: new Date().toISOString()
-    };
-    onLoginSuccess(adminUser);
-    onClose();
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -78,7 +64,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <div>
               <h3 className="text-lg font-extrabold text-white">Admin Portal Sign In</h3>
               <p className="text-xs text-amber-300 font-medium">
-                Enter your admin credentials to access order management
+                Enter your admin email and password to sign in
               </p>
             </div>
           </div>
@@ -86,21 +72,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         {/* Form Body */}
         <div className="p-6 space-y-5">
-
-          {/* Quick Demo 1-Click Fill Button for Mobile */}
-          <div className="bg-amber-50 border border-amber-300 p-3 rounded-xl flex items-center justify-between gap-2 text-xs">
-            <div>
-              <p className="font-extrabold text-slate-900">Admin Account</p>
-              <p className="text-[11px] text-amber-800 font-mono">chetanmohane27@gmail.com</p>
-            </div>
-            <button
-              type="button"
-              onClick={handleQuickFill}
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3.5 py-2 rounded-lg text-xs shadow transition transform active:scale-95 whitespace-nowrap"
-            >
-              ⚡ 1-Click Login
-            </button>
-          </div>
 
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-xs p-3 rounded-lg leading-relaxed font-semibold">

@@ -4,6 +4,7 @@ import { initialShipments, loadShipmentsFromStorage, saveShipmentsToStorage } fr
 
 export async function fetchAllShipments(): Promise<Shipment[]> {
   const supabase = getSupabaseClient();
+  let resultShipments: Shipment[] = [];
 
   if (supabase) {
     try {
@@ -13,10 +14,9 @@ export async function fetchAllShipments(): Promise<Shipment[]> {
         .order('created_at', { ascending: false });
 
       if (!error && rows && rows.length > 0) {
-        // Fetch checkpoints for these shipments
         const { data: cpRows } = await supabase.from('checkpoints').select('*');
 
-        const shipments: Shipment[] = rows.map((r: any) => {
+        resultShipments = rows.map((r: any) => {
           const matchedCp = cpRows
             ? cpRows
                 .filter((cp: any) => cp.awb_number === r.awb_number)
@@ -51,18 +51,23 @@ export async function fetchAllShipments(): Promise<Shipment[]> {
             createdAt: r.created_at
           };
         });
-
-        // Cache to localStorage
-        saveShipmentsToStorage(shipments);
-        return shipments;
       }
     } catch (err) {
       console.warn('Supabase fetch failed, falling back to local storage:', err);
     }
   }
 
-  // Local storage fallback
-  return loadShipmentsFromStorage();
+  if (resultShipments.length === 0) {
+    resultShipments = loadShipmentsFromStorage();
+  }
+
+  // If still empty (first time load with no database rows and no local storage), seed initial demo shipments
+  if (resultShipments.length === 0) {
+    resultShipments = [...initialShipments];
+  }
+
+  saveShipmentsToStorage(resultShipments);
+  return resultShipments;
 }
 
 export async function saveNewShipment(newShipment: Shipment): Promise<Shipment[]> {
