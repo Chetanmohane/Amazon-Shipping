@@ -85,6 +85,7 @@ export function App() {
     if (user.role === 'admin') {
       setActiveTab('admin');
     }
+    loadData();
   };
 
   const handleLogout = () => {
@@ -325,6 +326,7 @@ export function App() {
             onLoginDemoAdmin={handleQuickDemoAdmin}
             hasSupabase={hasSupabase}
             onOpenSupabaseModal={() => setIsSupabaseModalOpen(true)}
+            onRefreshData={loadData}
           />
         )}
       </main>

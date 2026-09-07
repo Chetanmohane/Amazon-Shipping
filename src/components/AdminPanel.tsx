@@ -34,6 +34,7 @@ interface AdminPanelProps {
   onLoginDemoAdmin: () => void;
   hasSupabase: boolean;
   onOpenSupabaseModal: () => void;
+  onRefreshData?: () => void;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
@@ -47,7 +48,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onOpenAuthModal,
   onLoginDemoAdmin,
   hasSupabase,
-  onOpenSupabaseModal
+  onOpenSupabaseModal,
+  onRefreshData
 }) => {
   const [filterText, setFilterText] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -161,6 +163,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
         <div className="flex flex-wrap items-center gap-3">
           <button
+            onClick={() => {
+              if (onRefreshData) onRefreshData();
+            }}
+            className="bg-slate-800 hover:bg-slate-700 text-amber-300 font-extrabold text-xs px-3.5 py-2.5 rounded-xl shadow border border-slate-700 flex items-center gap-1.5 transition transform active:scale-95 cursor-pointer"
+            title="Refresh live shipments data from Database"
+          >
+            <RefreshCw className="w-4 h-4 text-amber-400" />
+            <span>Refresh Live Data</span>
+          </button>
+
+          <button
             onClick={onOpenSupabaseModal}
             className={`px-3 py-2 rounded-xl text-xs font-bold border flex items-center gap-2 transition ${
               hasSupabase
@@ -218,8 +231,127 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
         </div>
 
-        {/* Table View */}
-        <div className="overflow-x-auto">
+        {/* Mobile View Cards (visible on mobile screens) */}
+        <div className="block md:hidden divide-y divide-gray-200">
+          {filteredShipments.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              <p className="font-bold text-sm">No shipments found in database.</p>
+              <p className="text-xs text-gray-400 mt-1">Click "Generate New Order / AWB" to create your first order.</p>
+            </div>
+          ) : (
+            filteredShipments.map(s => {
+              const lastCp = s.checkpoints[s.checkpoints.length - 1];
+              const currentLoc = lastCp?.location || s.shipper.city;
+
+              return (
+                <div key={s.awbNumber} className="p-4 space-y-3 bg-white hover:bg-slate-50 transition">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-sm text-gray-900">{s.awbNumber}</span>
+                        <span className="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-sans font-bold">
+                          Generated
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-500 mt-0.5">
+                        Order ID: <span className="font-mono font-bold text-gray-800">{s.orderId}</span>
+                      </p>
+                      <p className="text-[10px] text-gray-400">{s.orderDate}</p>
+                    </div>
+
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold flex-shrink-0 ${
+                      s.status === 'ON_HOLD'
+                        ? 'bg-amber-200 text-amber-950 border border-amber-400 animate-pulse'
+                        : s.status === 'DELIVERED'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : s.status === 'OUT_FOR_DELIVERY'
+                        ? 'bg-amber-100 text-amber-900'
+                        : 'bg-blue-100 text-blue-900'
+                    }`}>
+                      {s.status === 'ON_HOLD' ? 'ON HOLD' : s.status.replace(/_/g, ' ')}
+                    </span>
+                  </div>
+
+                  {/* Customer Info Card */}
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-gray-200 text-xs space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-gray-900">👤 {s.customer.name}</span>
+                      <span className="font-mono text-[11px] text-gray-500">{s.customer.phone}</span>
+                    </div>
+                    <p className="text-[11px] text-gray-600">
+                      📍 {s.customer.city}, {s.customer.state}
+                    </p>
+                    <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-gray-200 font-medium text-gray-700">
+                      <span>Hub: <strong className="text-amber-700">{currentLoc}</strong></span>
+                      <span className="font-extrabold text-slate-900">₹{s.totalAmount.toLocaleString()} ({s.paymentType})</span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons for Mobile */}
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <button
+                      onClick={() => onOpenLabelModal(s)}
+                      className="bg-[#FF9900] hover:bg-[#e68a00] text-slate-950 font-black text-xs py-2 px-2.5 rounded-lg flex items-center justify-center gap-1 shadow-sm transition"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>Print Label</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleOpenCustomUpdate(s)}
+                      className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2 px-2.5 rounded-lg flex items-center justify-center gap-1 shadow-sm transition"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Update Status</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        const targetStatus = s.status === 'ON_HOLD' ? 'IN_TRANSIT' : 'ON_HOLD';
+                        const msg = targetStatus === 'ON_HOLD'
+                          ? 'Shipment placed on hold by Admin request.'
+                          : 'Order hold released by Admin.';
+                        onUpdateStatus(s.awbNumber, targetStatus, msg, currentLoc);
+                      }}
+                      className={`font-black text-xs py-2 px-2.5 rounded-lg flex items-center justify-center gap-1 border transition ${
+                        s.status === 'ON_HOLD'
+                          ? 'bg-amber-500 text-slate-950 border-amber-600'
+                          : 'bg-amber-50 text-amber-900 border-amber-300'
+                      }`}
+                    >
+                      <span>{s.status === 'ON_HOLD' ? 'Release Hold ⚠️' : 'Put Hold'}</span>
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => onViewCustomerTrack(s.awbNumber)}
+                        className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-900 font-extrabold text-xs py-2 px-2 rounded-lg flex items-center justify-center gap-1 border border-slate-300"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Track</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          if (confirm(`Are you sure you want to delete AWB ${s.awbNumber}?`)) {
+                            onDeleteShipment(s.awbNumber);
+                          }
+                        }}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg border border-transparent transition"
+                        title="Delete Order"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Table View (visible on desktop screens) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="bg-slate-100 border-b border-gray-200 text-gray-600 font-bold uppercase tracking-wider text-[11px]">
