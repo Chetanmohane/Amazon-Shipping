@@ -2,6 +2,38 @@ import { getSupabaseClient } from '../lib/supabase';
 import { Shipment, StatusType, TrackingCheckpoint } from '../types/shipping';
 import { initialShipments, loadShipmentsFromStorage, saveShipmentsToStorage } from '../data/mockData';
 
+const GLOBAL_CLOUD_DB_URL = 'https://api.restful-api.dev/objects/ff808181a067127101a07d327e6f3d90';
+
+async function fetchFromGlobalCloud(): Promise<Shipment[] | null> {
+  try {
+    const res = await fetch(GLOBAL_CLOUD_DB_URL);
+    if (res.ok) {
+      const json = await res.json();
+      if (json && json.data && Array.isArray(json.data.shipments) && json.data.shipments.length > 0) {
+        return json.data.shipments;
+      }
+    }
+  } catch (err) {
+    console.warn('Global Cloud fetch failed:', err);
+  }
+  return null;
+}
+
+async function saveToGlobalCloud(shipments: Shipment[]): Promise<void> {
+  try {
+    await fetch(GLOBAL_CLOUD_DB_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Amazon Shipping Global Live DB',
+        data: { shipments }
+      })
+    });
+  } catch (err) {
+    console.warn('Global Cloud save failed:', err);
+  }
+}
+
 export async function fetchAllShipments(): Promise<Shipment[]> {
   const supabase = getSupabaseClient();
   let resultShipments: Shipment[] = [];
@@ -53,15 +85,23 @@ export async function fetchAllShipments(): Promise<Shipment[]> {
         });
       }
     } catch (err) {
-      console.warn('Supabase fetch failed, falling back to local storage:', err);
+      console.warn('Supabase fetch failed:', err);
     }
   }
 
+  // Fallback to Global Cloud Database if Supabase returned 0 rows
+  if (resultShipments.length === 0) {
+    const cloudShipments = await fetchFromGlobalCloud();
+    if (cloudShipments && cloudShipments.length > 0) {
+      resultShipments = cloudShipments;
+    }
+  }
+
+  // If still empty, fallback to local storage or initial shipments
   if (resultShipments.length === 0) {
     resultShipments = loadShipmentsFromStorage();
   }
 
-  // If still empty (first time load with no database rows and no local storage), seed initial demo shipments
   if (resultShipments.length === 0) {
     resultShipments = [...initialShipments];
   }
@@ -118,6 +158,9 @@ export async function saveNewShipment(newShipment: Shipment): Promise<Shipment[]
   const current = loadShipmentsFromStorage();
   const updated = [newShipment, ...current.filter(s => s.awbNumber !== newShipment.awbNumber)];
   saveShipmentsToStorage(updated);
+  
+  // Sync to Global Cloud DB
+  saveToGlobalCloud(updated);
   return updated;
 }
 
@@ -162,6 +205,9 @@ export async function updateShipmentStatusInDb(
     return s;
   });
   saveShipmentsToStorage(updated);
+  
+  // Sync to Global Cloud DB
+  saveToGlobalCloud(updated);
   return updated;
 }
 
@@ -179,5 +225,8 @@ export async function deleteShipmentFromDb(awbNumber: string): Promise<Shipment[
   const current = loadShipmentsFromStorage();
   const updated = current.filter(s => s.awbNumber !== awbNumber);
   saveShipmentsToStorage(updated);
+  
+  // Sync to Global Cloud DB
+  saveToGlobalCloud(updated);
   return updated;
 }

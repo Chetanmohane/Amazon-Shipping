@@ -76,6 +76,22 @@ export function App() {
 
   useEffect(() => {
     loadData();
+
+    // Auto-poll Global Cloud DB every 6 seconds for live multi-device sync
+    const interval = setInterval(() => {
+      loadData();
+    }, 6000);
+
+    const handleFocus = () => {
+      loadData();
+    };
+
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   // Save Auth User to localStorage & switch tabs
