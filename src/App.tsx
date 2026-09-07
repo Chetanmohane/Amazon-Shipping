@@ -55,35 +55,39 @@ export function App() {
   });
 
   // Load shipments from DB on mount
-  const loadData = async () => {
-    setLoading(true);
-    const loaded = await fetchAllShipments();
-    setShipments(loaded);
-    setLoading(false);
+  const loadData = async (isInitial = false) => {
+    if (isInitial && shipments.length === 0) {
+      setLoading(true);
+    }
+    try {
+      const loaded = await fetchAllShipments();
+      setShipments(loaded);
 
-    // Check URL search query param ?awb=...
-    const urlParams = new URLSearchParams(window.location.search);
-    const awbFromUrl = urlParams.get('awb');
+      // Check URL search query param ?awb=...
+      const urlParams = new URLSearchParams(window.location.search);
+      const awbFromUrl = urlParams.get('awb');
 
-    if (awbFromUrl) {
-      setSearchQuery(awbFromUrl);
-      executeStrictSearch(awbFromUrl, loaded);
-    } else {
-      setSelectedShipment(null);
-      setNotFound(false);
+      if (awbFromUrl && isInitial) {
+        setSearchQuery(awbFromUrl);
+        executeStrictSearch(awbFromUrl, loaded);
+      }
+    } catch (err) {
+      console.error('Failed loading shipments:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadData();
+    loadData(true);
 
-    // Auto-poll Global Cloud DB every 6 seconds for live multi-device sync
+    // Auto-poll Global Cloud DB every 8 seconds for live multi-device sync
     const interval = setInterval(() => {
-      loadData();
-    }, 6000);
+      loadData(false);
+    }, 8000);
 
     const handleFocus = () => {
-      loadData();
+      loadData(false);
     };
 
     window.addEventListener('focus', handleFocus);

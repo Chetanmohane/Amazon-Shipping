@@ -4,9 +4,25 @@ import { initialShipments, loadShipmentsFromStorage, saveShipmentsToStorage } fr
 
 const GLOBAL_CLOUD_DB_URL = 'https://api.restful-api.dev/objects/ff808181a067127101a07d327e6f3d90';
 
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 2000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+    return response;
+  } catch (error) {
+    clearTimeout(timer);
+    throw error;
+  }
+}
+
 async function fetchFromGlobalCloud(): Promise<Shipment[] | null> {
   try {
-    const res = await fetch(GLOBAL_CLOUD_DB_URL);
+    const res = await fetchWithTimeout(GLOBAL_CLOUD_DB_URL, {}, 2000);
     if (res.ok) {
       const json = await res.json();
       if (json && json.data && Array.isArray(json.data.shipments) && json.data.shipments.length > 0) {
@@ -21,14 +37,14 @@ async function fetchFromGlobalCloud(): Promise<Shipment[] | null> {
 
 async function saveToGlobalCloud(shipments: Shipment[]): Promise<void> {
   try {
-    await fetch(GLOBAL_CLOUD_DB_URL, {
+    await fetchWithTimeout(GLOBAL_CLOUD_DB_URL, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: 'Amazon Shipping Global Live DB',
         data: { shipments }
       })
-    });
+    }, 3000);
   } catch (err) {
     console.warn('Global Cloud save failed:', err);
   }
