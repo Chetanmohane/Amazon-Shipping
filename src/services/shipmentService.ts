@@ -109,7 +109,17 @@ export async function fetchAllShipments(): Promise<Shipment[]> {
   if (resultShipments.length === 0) {
     const cloudShipments = await fetchFromGlobalCloud();
     if (cloudShipments && cloudShipments.length > 0) {
-      resultShipments = cloudShipments;
+      resultShipments = cloudShipments
+        .filter((s): s is Shipment => Boolean(s && typeof s === 'object' && s.awbNumber))
+        .map(s => ({
+          ...s,
+          status: s.status || 'ORDER_PLACED',
+          checkpoints: Array.isArray(s.checkpoints) ? s.checkpoints : [],
+          customer: s.customer || { name: 'Customer', phone: '', addressLine1: '', city: '', state: '', pincode: '' },
+          shipper: s.shipper || { warehouseName: 'Amazon FC', address: '', city: '', state: '', pincode: '', hubCode: '' },
+          items: Array.isArray(s.items) ? s.items : [],
+          totalAmount: Number(s.totalAmount) || 0
+        }));
     }
   }
 

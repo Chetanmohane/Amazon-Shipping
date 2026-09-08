@@ -167,7 +167,7 @@ export const Header: React.FC<HeaderProps> = ({
                   A
                 </div>
                 <div className="hidden sm:block leading-tight text-left">
-                  <p className="text-xs font-bold text-slate-900 max-w-[120px] truncate">{authUser.name}</p>
+                  <p className="text-xs font-bold text-slate-900 max-w-[120px] truncate">{authUser?.name || 'Admin'}</p>
                   <p className="text-[10px] text-amber-600 font-mono uppercase font-bold">ADMIN</p>
                 </div>
                 <button
@@ -279,7 +279,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                 <div className="pt-2 border-t border-slate-100 flex justify-between items-center px-1">
                   <div className="text-xs font-bold text-slate-900 truncate">
-                    <span>Logged in as: {authUser.name}</span>
+                    <span>Logged in as: {authUser?.name || 'Admin'}</span>
                   </div>
                   <button
                     onClick={() => { onLogout(); setIsMobileMenuOpen(false); }}

@@ -21,13 +21,13 @@ import { getSupabaseCredentials } from './lib/supabase';
 export function App() {
   // Initialize activeTab to 'admin' if admin is already logged in
   const [activeTab, setActiveTab] = useState<'customer' | 'admin'>(() => {
-    const saved = localStorage.getItem('amazon_portal_auth_user');
-    if (saved) {
-      try {
+    try {
+      const saved = localStorage.getItem('amazon_portal_auth_user');
+      if (saved && saved !== 'undefined' && saved !== 'null') {
         const u = JSON.parse(saved);
-        if (u && u.role === 'admin') return 'admin';
-      } catch (e) {}
-    }
+        if (u && typeof u === 'object' && u.role === 'admin') return 'admin';
+      }
+    } catch (e) {}
     return 'customer';
   });
   const [shipments, setShipments] = useState<Shipment[]>([]);

@@ -137,7 +137,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   // Filtered shipments
   const filteredShipments = (shipments || []).filter(s => {
-    if (!s) return false;
+    if (!s || typeof s !== 'object') return false;
     const awb = (s.awbNumber || '').toLowerCase();
     const order = (s.orderId || '').toLowerCase();
     const custName = (s.customer?.name || '').toLowerCase();
@@ -150,7 +150,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       custName.includes(query) ||
       custCity.includes(query);
 
-    const matchesStatus = statusFilter === 'ALL' || s.status === statusFilter;
+    const matchesStatus = statusFilter === 'ALL' || (s.status || 'ORDER_PLACED') === statusFilter;
 
     return matchesQuery && matchesStatus;
   });
@@ -180,7 +180,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     e.preventDefault();
     if (updatingAwb) {
       const finalStatus: StatusType = isHoldChecked ? 'ON_HOLD' : customStatus;
-      const stageName = customStatus.replace(/_/g, ' ');
+      const stageName = (customStatus || 'IN_TRANSIT').toString().replace(/_/g, ' ');
       const desc = isHoldChecked
         ? (customDesc || `Order placed on hold by Admin at ${stageName} stage. Please contact seller.`)
         : customDesc;
@@ -200,7 +200,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <span className="bg-[#FF9900] text-black font-extrabold text-xs px-2.5 py-0.5 rounded uppercase tracking-wider">
               Admin Portal
             </span>
-            <span className="text-xs text-amber-400 font-mono">Logged in as: {authUser.name}</span>
+            <span className="text-xs text-amber-400 font-mono">Logged in as: {authUser?.name || 'Admin'}</span>
           </div>
           <h2 className="text-2xl font-black text-white mt-1">
             Amazon Order & AWB Generator Dashboard
@@ -346,7 +346,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         ? 'bg-amber-100 text-amber-900'
                         : 'bg-blue-100 text-blue-900'
                     }`}>
-                      {s.status === 'ON_HOLD' ? 'ON HOLD' : s.status.replace(/_/g, ' ')}
+                      {s.status === 'ON_HOLD' ? 'ON HOLD' : (s.status || 'ORDER_PLACED').toString().replace(/_/g, ' ')}
                     </span>
                   </div>
 
@@ -494,14 +494,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             (() => {
                               const cpList = s.checkpoints || [];
                               for (let i = cpList.length - 1; i >= 0; i--) {
-                                if (cpList[i].status && cpList[i].status !== 'ON_HOLD') {
-                                  return `ON HOLD (${cpList[i].status.replace(/_/g, ' ')})`;
+                                if (cpList[i]?.status && cpList[i].status !== 'ON_HOLD') {
+                                  return `ON HOLD (${String(cpList[i].status).replace(/_/g, ' ')})`;
                                 }
                               }
                               return 'ON HOLD (Order Placed)';
                             })()
                           ) : (
-                            s.status.replace(/_/g, ' ')
+                            (s.status || 'ORDER_PLACED').toString().replace(/_/g, ' ')
                           )}
                         </span>
                         <p className="text-[11px] text-gray-600 font-medium mt-1 flex items-center gap-1">
@@ -632,7 +632,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <span>⚠️ Put Order ON HOLD at this stage</span>
                 </label>
                 <p className="text-[11px] text-amber-800 font-medium pl-6">
-                  When checked, tracking stops at <strong>{customStatus.replace(/_/g, ' ')}</strong> with an On Hold warning for the customer.
+                  When checked, tracking stops at <strong>{(customStatus || 'IN_TRANSIT').toString().replace(/_/g, ' ')}</strong> with an On Hold warning for the customer.
                 </p>
               </div>
 

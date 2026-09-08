@@ -156,7 +156,20 @@ export function loadShipmentsFromStorage(): Shipment[] {
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        const validShipments = parsed
+          .filter((item): item is Shipment => Boolean(item && typeof item === 'object' && item.awbNumber))
+          .map(s => ({
+            ...s,
+            status: s.status || 'ORDER_PLACED',
+            checkpoints: Array.isArray(s.checkpoints) ? s.checkpoints : [],
+            customer: s.customer || { name: 'Customer', phone: '', addressLine1: '', city: '', state: '', pincode: '' },
+            shipper: s.shipper || { warehouseName: 'Amazon FC', address: '', city: '', state: '', pincode: '', hubCode: '' },
+            items: Array.isArray(s.items) ? s.items : [],
+            totalAmount: Number(s.totalAmount) || 0
+          }));
+        if (validShipments.length > 0) {
+          return validShipments;
+        }
       }
     }
   } catch (err) {
@@ -172,3 +185,4 @@ export function saveShipmentsToStorage(shipments: Shipment[]): void {
     console.error("Error saving shipments to storage", err);
   }
 }
+

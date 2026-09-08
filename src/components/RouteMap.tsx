@@ -75,7 +75,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({ shipment }) => {
               <Truck className="w-5 h-5 stroke-[2.5]" />
             </div>
             <div className="absolute top-11 left-1/2 -translate-x-1/2 whitespace-nowrap bg-slate-900 border border-slate-700 text-[10px] text-amber-300 px-2 py-0.5 rounded shadow font-mono">
-              {shipment.status.replace(/_/g, ' ')}
+              {(shipment?.status || 'ORDER_PLACED').toString().replace(/_/g, ' ')}
             </div>
           </div>
         </div>
