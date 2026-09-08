@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS public.shipments (
     weight_kg NUMERIC(6,2) DEFAULT 1.0,
     dimensions VARCHAR(32) DEFAULT '25 x 15 x 10 cm',
     carrier_name VARCHAR(64) DEFAULT 'Amazon Logistics (ATS)',
-    routingCode VARCHAR(32) DEFAULT 'DEL-NORTH-HUB',
+    routing_code VARCHAR(32) DEFAULT 'DEL-NORTH-HUB',
     zone VARCHAR(16) DEFAULT 'Zone B',
     customer_info JSONB NOT NULL,
     shipper_info JSONB NOT NULL,
