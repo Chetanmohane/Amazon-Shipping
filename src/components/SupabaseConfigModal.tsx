@@ -56,9 +56,27 @@ CREATE TABLE IF NOT EXISTS public.checkpoints (
 ALTER TABLE public.shipments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.checkpoints ENABLE ROW LEVEL SECURITY;
 
--- Allow Public Access (SELECT, INSERT, UPDATE, DELETE) for tracking portal
-CREATE POLICY "Allow public all shipments" ON public.shipments FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public all checkpoints" ON public.checkpoints FOR ALL USING (true) WITH CHECK (true);`;
+DROP POLICY IF EXISTS "Allow public all shipments" ON public.shipments;
+DROP POLICY IF EXISTS "Allow public select shipments" ON public.shipments;
+DROP POLICY IF EXISTS "Allow public insert shipments" ON public.shipments;
+DROP POLICY IF EXISTS "Allow public update shipments" ON public.shipments;
+DROP POLICY IF EXISTS "Allow public delete shipments" ON public.shipments;
+
+DROP POLICY IF EXISTS "Allow public all checkpoints" ON public.checkpoints;
+DROP POLICY IF EXISTS "Allow public select checkpoints" ON public.checkpoints;
+DROP POLICY IF EXISTS "Allow public insert checkpoints" ON public.checkpoints;
+DROP POLICY IF EXISTS "Allow public update checkpoints" ON public.checkpoints;
+DROP POLICY IF EXISTS "Allow public delete checkpoints" ON public.checkpoints;
+
+CREATE POLICY "Allow public select shipments" ON public.shipments FOR SELECT USING (true);
+CREATE POLICY "Allow public insert shipments" ON public.shipments FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update shipments" ON public.shipments FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete shipments" ON public.shipments FOR DELETE USING (true);
+
+CREATE POLICY "Allow public select checkpoints" ON public.checkpoints FOR SELECT USING (true);
+CREATE POLICY "Allow public insert checkpoints" ON public.checkpoints FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update checkpoints" ON public.checkpoints FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete checkpoints" ON public.checkpoints FOR DELETE USING (true);`;
 
   const handleTestConnection = async () => {
     setTesting(true);

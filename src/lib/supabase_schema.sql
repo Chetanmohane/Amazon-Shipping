@@ -49,12 +49,22 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 -- 4. Enable Row Level Security (RLS) & Public Read Access
 ALTER TABLE public.shipments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.checkpoints ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- Allow anonymous & authenticated users to read shipments (for customer tracking)
+-- Drop existing policies if they already exist (avoids 42710 error)
+DROP POLICY IF EXISTS "Allow public select shipments" ON public.shipments;
+DROP POLICY IF EXISTS "Allow public insert shipments" ON public.shipments;
+DROP POLICY IF EXISTS "Allow public update shipments" ON public.shipments;
+DROP POLICY IF EXISTS "Allow public delete shipments" ON public.shipments;
+DROP POLICY IF EXISTS "Allow public all shipments" ON public.shipments;
+
+DROP POLICY IF EXISTS "Allow public select checkpoints" ON public.checkpoints;
+DROP POLICY IF EXISTS "Allow public insert checkpoints" ON public.checkpoints;
+DROP POLICY IF EXISTS "Allow public update checkpoints" ON public.checkpoints;
+DROP POLICY IF EXISTS "Allow public delete checkpoints" ON public.checkpoints;
+DROP POLICY IF EXISTS "Allow public all checkpoints" ON public.checkpoints;
+
+-- Allow anonymous & authenticated users to access shipments (for tracking portal)
 CREATE POLICY "Allow public select shipments" ON public.shipments FOR SELECT USING (true);
-
--- Allow public insert / update / delete for admin & demo operations
 CREATE POLICY "Allow public insert shipments" ON public.shipments FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public update shipments" ON public.shipments FOR UPDATE USING (true);
 CREATE POLICY "Allow public delete shipments" ON public.shipments FOR DELETE USING (true);
